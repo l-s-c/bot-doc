@@ -1,65 +1,56 @@
-# JSONKit 技术方案
+# DevKit 技术架构文档
+
+## 概述
+DevKit 是一个纯前端的在线开发者工具箱，包含 14 个工具，部署在 GitHub Pages。
 
 ## 技术栈
+- **构建**: Vite (MPA 多入口，16 个 rollup input)
+- **编辑器**: CodeMirror 6 (CDN 加载，textarea 降级)
+- **样式**: 原生 CSS（液态玻璃设计系统）
+- **运行时**: 纯浏览器端，Web Worker 处理重计算
+- **部署**: GitHub Pages + GitHub Actions CI/CD
+- **统计**: 百度统计
 
-- **前端**：HTML + CSS + 原生 JS（纯前端，无后端）
-- **编辑器**：CodeMirror 6（语法高亮、行号、括号匹配）
-- **构建**：MVP 阶段 CDN 引入，正式部署用 Vite 打包
-- **主题**：CSS 变量系统，支持亮色/暗色切换
+## 架构
 
-## 架构设计
+### MPA + SPA 混合
+- **首页** (`pages/index.html`): 16 个工具卡片入口
+- **JSON SPA** (`pages/json/index.html`): 4 个工具共享编辑器（hash 路由 `#format/#tree/#convert/#diff`）
+- **13 个独立工具页**: 各自独立 HTML (`pages/{tool}/index.html`)
+- **根跳转** (`index.html`): 相对路径重定向到首页
 
+### 模块结构 (JSON SPA)
 ```
-┌─────────────────────────────────┐
-│           UI Layer              │
-│  Header + Sidebar + 双栏布局    │
-├─────────────────────────────────┤
-│        Editor Layer             │
-│    CodeMirror 6 (JSON mode)     │
-├─────────────────────────────────┤
-│       Processing Layer          │
-│    Web Worker (独立线程)         │
-│  - 格式化 / 校验 / Diff / 树形  │
-├─────────────────────────────────┤
-│        Display Layer            │
-│  树形视图 (虚拟滚动 - 二期)      │
-└─────────────────────────────────┘
+app.js (229行) — 入口 + 路由 + 共用 UI
+├── pages/json/modules/format.js (171行) — 格式化 + 校验
+├── pages/json/modules/tree.js (473行) — 树形视图 + JSONPath
+├── pages/json/modules/convert.js (104行) — 8 种格式转换
+└── pages/json/modules/diff.js (610行) — 语义化对比
 ```
 
-## 关键技术决策
+### 共享模块
+- `shared/liquid-glass.css` — 设计系统
+- `shared/theme.js` — 主题切换 + toast + copyText
+- `worker-manager.js` — Web Worker 管理
+- `converters.js` — JSON 转换器（YAML/XML/CSV/TS/Go/Java/Python/Schema）
+- `cm-setup.js` — CodeMirror 6 初始化
 
-### 1. CodeMirror 6 (非 Monaco)
-- 打包体积小（几百KB vs Monaco 2MB+）
-- 移动端友好
-- JSON 工具场景不需要 VS Code 级功能
+### 关键设计决策
+1. **CM6 而非 Monaco**: 体积 200KB vs 2MB，移动端友好
+2. **Web Worker**: JSON 解析/格式化在 Worker 线程，主线程不卡
+3. **Hash 路由**: JSON SPA 用 `#` 路由，GitHub Pages 静态托管不支持 history API fallback
+4. **CDN 降级**: CM6 加载失败自动降级为原生 textarea
 
-### 2. Web Worker
-- 格式化、校验、diff 全部放 Worker，主线程不阻塞
-- Worker 独立文件 `json-worker.js`，加时间戳防缓存
-- Worker Manager 用 Promise + id 管理异步调用
+### SEO
+- 15 个页面各有 title/description/canonical/OG/Twitter Card/JSON-LD/H1/noscript
+- sitemap.xml (28 URLs) + robots.txt
+- `<noscript>` 内容关键（百度不执行 JS）
 
-### 3. 功能模块懒加载
-- 按工具拆分 chunk，首屏只加载当前工具
-- 正式部署用 Vite code splitting
+### 部署
+- GitHub Actions: push main → `npm ci` → `vite build --base /devkit/` → deploy-pages
+- `base: '/devkit/'` 配置统一处理子路径
 
-### 4. CSS 变量主题系统
-- Design Token → CSS 变量，亮色/暗色一套变量名不同值
-- localStorage 持久化用户偏好
-
-## 性能要求
-
-| 指标 | 目标 |
-|------|------|
-| 首屏加载 | < 2s (4G) |
-| 1MB 格式化 | < 500ms |
-| 10MB 格式化 | < 3s |
-| 文件上传上限 | 50MB |
-
-## 二期技术规划
-
-1. **虚拟滚动** — 树形视图 10000+ 节点性能优化
-2. **Vite 打包** — 替换 CDN，code splitting + tree shaking
-3. **SEO** — 每个工具独立可索引页面，SSG 或多页面
-4. **JSON 转换** — JSON ↔ YAML / XML / CSV / TypeScript
-5. **JSONPath 查询**
-6. **Schema 校验** — ajv
+## 仓库
+- 代码: https://github.com/l-s-c/devkit
+- 文档: https://github.com/l-s-c/bot-doc
+- 线上: https://l-s-c.github.io/devkit/

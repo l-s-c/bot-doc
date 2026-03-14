@@ -119,13 +119,10 @@
 - **title**: 随机数生成器 — DevKit 在线开发者工具箱
 - **description**: 在线随机数生成器，支持整数、浮点数、骰子模式，批量生成，Fisher-Yates 不重复，crypto 安全随机。
 
-### 大小写转换 (/pages/case-converter/) ⚠️ 待更新
-- **title**: 大小写转换 — DevKit 在线开发者工具箱
-  - ➡️ 建议改为：`大小写转换 | Case Converter Online — DevKit`
-- **description**: 在线大小写转换工具，支持全大写、全小写、首字母大写、camelCase、PascalCase、snake_case、kebab-case 等 8 种模式。
-  - ➡️ 建议加英文：`...camelCase, PascalCase, snake_case, kebab-case converter`
-- **keywords**: ⚠️ 缺失
-  - ➡️ 建议加：`case converter, 大小写转换, camelCase converter, snake_case converter`
+### 大小写转换 (/pages/case-converter/)
+- **title**: 大小写转换 | Case Converter Online — DevKit
+- **description**: 在线大小写转换工具，支持全大写、全小写、首字母大写、camelCase、PascalCase、snake_case、kebab-case converter 等 8 种模式。
+- **keywords**: case converter, 大小写转换, camelCase converter, snake_case converter
 
 ---
 
